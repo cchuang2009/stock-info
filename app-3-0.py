@@ -2,129 +2,8 @@ import streamlit as st
 import pandas as pd
 import json
 import os
-import base64
-import requests
 from datetime import datetime, date
 import calendar
-
-# ── GitHub helpers ────────────────────────────────────────────────────────────
-def _gh_headers(token):
-    return {"Authorization": f"token {token}", "Accept": "application/vnd.github.v3+json"}
-
-def gh_pull(token, repo, path):
-    """Pull JSON from GitHub. Returns (data_dict, sha) or (None, None)."""
-    try:
-        r = requests.get(f"https://api.github.com/repos/{repo}/contents/{path}",
-                         headers=_gh_headers(token), timeout=10)
-        if r.status_code == 200:
-            j = r.json()
-            text = base64.b64decode(j["content"]).decode("utf-8")
-            return json.loads(text), j.get("sha", "")
-        return None, None
-    except Exception:
-        return None, None
-
-def gh_push(token, repo, path, data, sha="", msg="Update earnings data"):
-    """Push JSON to GitHub. Returns (ok:bool, status_code)."""
-    try:
-        content = base64.b64encode(
-            json.dumps(data, ensure_ascii=False, indent=2).encode("utf-8")
-        ).decode("utf-8")
-        payload = {"message": msg, "content": content}
-        if sha:
-            payload["sha"] = sha
-        r = requests.put(f"https://api.github.com/repos/{repo}/contents/{path}",
-                         headers=_gh_headers(token), json=payload, timeout=10)
-        # fetch updated sha
-        new_sha = r.json().get("content", {}).get("sha", sha) if r.status_code in (200,201) else sha
-        return r.status_code in (200, 201), r.status_code, new_sha
-    except Exception as e:
-        return False, 0, sha
-
-def get_gh_secrets():
-    """Read GitHub config from st.secrets if available."""
-    try:
-        gh = st.secrets.get("github", {})
-        return gh.get("token",""), gh.get("repo",""), gh.get("path","earnings_data.json")
-    except Exception:
-        return "", "", "earnings_data.json"
-
-
-# ── yfinance earnings auto-fetch ──────────────────────────────────────────────
-@st.cache_data(ttl=3600, show_spinner=False)
-def fetch_earnings_date(ticker: str):
-    """用 yfinance 抓取下一次財報日期，回傳 (date_str, time_str, eps_est) 或 (None,None,None)"""
-    try:
-        import yfinance as yf
-        tk = yf.Ticker(ticker)
-        cal = tk.calendar
-        if cal is None:
-            return None, None, None
-        ed = cal.get("Earnings Date")
-        if ed is None:
-            return None, None, None
-        raw = ed[0] if isinstance(ed, (list, tuple)) and len(ed) > 0 else ed
-        d_str = raw.date().isoformat() if hasattr(raw, "date") else str(raw)[:10]
-        eps = None
-        try:
-            eps_df = tk.earnings_dates
-            if eps_df is not None and not eps_df.empty:
-                row = eps_df[eps_df.index >= pd.Timestamp.now()].head(1)
-                if not row.empty:
-                    eps = row.iloc[0].get("EPS Estimate")
-        except Exception:
-            pass
-        time_str = "未確認"
-        try:
-            info = tk.info
-            timing = str(info.get("earningsTimingEstimate", "")).lower()
-            if "amc" in timing:
-                time_str = "盤後"
-            elif "bmo" in timing:
-                time_str = "盤前"
-        except Exception:
-            pass
-        return d_str, time_str, eps
-    except Exception:
-        return None, None, None
-
-
-def auto_update_earnings(data: dict, tickers: list, progress_cb=None):
-    """批次 fetch，upsert 到 data；回傳 (updated_data, results_list)"""
-    import copy, math
-    results = []
-    updated = copy.deepcopy(data)
-    for i, ticker in enumerate(tickers):
-        if progress_cb:
-            progress_cb(i / len(tickers), f"查詢 {ticker}…")
-        d_str, time_str, eps = fetch_earnings_date(ticker)
-        if d_str is None:
-            results.append({"ticker": ticker, "status": "❓", "date": "—", "msg": "查無資料"})
-            continue
-        mkey = d_str[:7]
-        existing_name = next((e.get("name","") for lst in updated.values() for e in lst if e["ticker"]==ticker), "")
-        lst = updated.setdefault(mkey, [])
-        idx = next((j for j, e in enumerate(lst) if e["ticker"] == ticker), None)
-        eps_note = f"，EPS共識 ${eps:.2f}" if eps and not (isinstance(eps, float) and math.isnan(eps)) else ""
-        note_auto = f"[yfinance自動更新 {date.today()}]{eps_note}"
-        if idx is not None:
-            old_date = lst[idx]["date"]
-            if old_date != d_str:
-                lst[idx]["date"] = d_str
-                if time_str != "未確認":
-                    lst[idx]["time"] = time_str
-                lst[idx]["notes"] = (lst[idx].get("notes","") + "\n" + note_auto).strip()
-                results.append({"ticker": ticker, "status": "🔄", "date": d_str, "msg": f"日期更新 {old_date}→{d_str}"})
-            else:
-                results.append({"ticker": ticker, "status": "✅", "date": d_str, "msg": "日期無變動"})
-        else:
-            lst.append({"id": f"yf_{ticker}_{d_str}", "date": d_str, "ticker": ticker,
-                         "name": existing_name, "time": time_str, "notes": note_auto})
-            results.append({"ticker": ticker, "status": "➕", "date": d_str, "msg": f"新增至 {mkey}"})
-    if progress_cb:
-        progress_cb(1.0, "完成！")
-    return updated, results
-
 
 st.set_page_config(
     page_title="美股財報日曆",
@@ -259,8 +138,11 @@ hr { border-color: #e5e7eb !important; }
 DATA_FILE = "earnings_data.json"
 
 # ── Data helpers ──────────────────────────────────────────────────────────────
-def get_default_data():
-    """2026 確認財報日期種子資料（來源：SEC、各公司 IR 官網、Wall Street Horizon）"""
+def load_data():
+    if os.path.exists(DATA_FILE):
+        with open(DATA_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    # seed data — 2026 confirmed earnings dates (sources: SEC, IR sites, Wall Street Horizon)
     return {
         # ── Q1 2026 銀行季 ────────────────────────────────────────────────────
         "2026-01": [
@@ -333,28 +215,9 @@ def get_default_data():
         ],
     }
 
-def load_data():
-    """Load from local file; if not found fall back to defaults."""
-    if os.path.exists(DATA_FILE):
-        with open(DATA_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
-    return get_default_data()
-
-def save_data(data, auto_push=True):
-    """Save locally, then auto-push to GitHub if secrets configured."""
+def save_data(data):
     with open(DATA_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
-    if auto_push:
-        token, repo, path = get_gh_secrets()
-        if token and repo:
-            sha = st.session_state.get("gh_sha", "")
-            ok, code, new_sha = gh_push(token, repo, path, data, sha)
-            if ok:
-                st.session_state["gh_sha"] = new_sha
-                st.session_state["gh_last_push"] = datetime.now().strftime("%H:%M:%S")
-            else:
-                st.session_state["gh_push_error"] = f"Push failed ({code})"
-
 
 def get_month_key(y, m):
     return f"{y}-{m:02d}"
@@ -368,28 +231,9 @@ def chip_class(time_str):
 
 # ── Session state ─────────────────────────────────────────────────────────────
 if "data" not in st.session_state:
-    # Try auto-pull from GitHub secrets on first load
-    token, repo, path = get_gh_secrets()
-    if token and repo:
-        pulled, sha = gh_pull(token, repo, path)
-        if pulled is not None:
-            st.session_state.data = pulled
-            st.session_state["gh_sha"] = sha
-            st.session_state["gh_connected"] = True
-            # also cache locally
-            with open(DATA_FILE, "w", encoding="utf-8") as _f:
-                json.dump(pulled, _f, ensure_ascii=False, indent=2)
-        else:
-            st.session_state.data = load_data()
-            st.session_state["gh_connected"] = False
-    else:
-        st.session_state.data = load_data()
-        st.session_state["gh_connected"] = False
-
+    st.session_state.data = load_data()
 if "edit_entry" not in st.session_state:
     st.session_state.edit_entry = None
-if "confirm_reset" not in st.session_state:
-    st.session_state["confirm_reset"] = False
 
 data = st.session_state.data
 
@@ -414,80 +258,50 @@ with st.sidebar:
 
     # ── GitHub Sync ──
     with st.expander("🔗 GitHub 同步", expanded=False):
-        s_token, s_repo, s_path = get_gh_secrets()
-        using_secrets = bool(s_token and s_repo)
-
-        # Status banner
-        if using_secrets:
-            connected = st.session_state.get("gh_connected", False)
-            last_push = st.session_state.get("gh_last_push", "—")
-            push_err  = st.session_state.get("gh_push_error", "")
-            if connected:
-                st.success(f"✅ 已連線：`{s_repo}/{s_path}`")
-            else:
-                st.warning("⚠️ Secrets 已設定但啟動時 Pull 失敗，請手動 Pull")
-            st.caption(f"最後 Auto-Push：{last_push}")
-            if push_err:
-                st.error(push_err)
-                if st.button("清除錯誤", key="clear_push_err"):
-                    st.session_state.pop("gh_push_error", None)
-                    st.rerun()
-            st.caption("💡 儲存/刪除時自動 Push，無需手動操作")
-            st.caption(f"設定來源：`st.secrets['github']`")
-            gh_token, gh_repo, gh_path = s_token, s_repo, s_path
-        else:
-            st.info("ℹ️ 未偵測到 Secrets，請手動輸入或設定 `st.secrets`")
-            gh_token = st.text_input("GitHub Token (PAT)", type="password",
-                                     placeholder="ghp_xxxxxxxxxxxx",
-                                     help="建議改用 Streamlit Secrets 永久儲存，不用每次輸入")
-            gh_repo  = st.text_input("Repo (user/repo)", placeholder="yourname/earnings-data")
-            gh_path  = st.text_input("檔案路徑", value="earnings_data.json")
-
-        st.markdown("**手動同步**")
+        gh_token = st.text_input("GitHub Token (PAT)", type="password", placeholder="ghp_xxxx")
+        gh_repo  = st.text_input("Repo (user/repo)",   placeholder="yourname/earnings-data")
+        gh_path  = st.text_input("檔案路徑",            value="earnings_data.json")
         col_g1, col_g2 = st.columns(2)
         with col_g1:
-            if st.button("⬇ Pull", use_container_width=True, help="從 GitHub 拉取最新資料（覆蓋本機）"):
+            if st.button("⬇ Pull", use_container_width=True):
                 if gh_token and gh_repo:
-                    with st.spinner("Pull 中…"):
-                        pulled, sha = gh_pull(gh_token, gh_repo, gh_path)
-                    if pulled is not None:
-                        st.session_state.data = pulled
-                        st.session_state["gh_sha"] = sha
-                        st.session_state["gh_connected"] = True
-                        save_data(pulled, auto_push=False)
-                        st.success(f"✅ Pull 成功，共 {sum(len(v) for v in pulled.values())} 筆")
-                        st.rerun()
-                    else:
-                        st.error("Pull 失敗，請確認 Token / Repo / 路徑")
+                    try:
+                        import requests, base64
+                        url = f"https://api.github.com/repos/{gh_repo}/contents/{gh_path}"
+                        r = requests.get(url, headers={"Authorization":f"token {gh_token}"}, timeout=8)
+                        if r.status_code == 200:
+                            content = base64.b64decode(r.json()["content"]).decode("utf-8")
+                            st.session_state.data = json.loads(content)
+                            save_data(st.session_state.data)
+                            st.success("✅ 已同步")
+                            st.rerun()
+                        else:
+                            st.error(f"錯誤 {r.status_code}")
+                    except Exception as e:
+                        st.error(str(e))
                 else:
                     st.warning("請填寫 Token 與 Repo")
         with col_g2:
-            if st.button("⬆ Push", use_container_width=True, help="強制推送目前資料到 GitHub"):
+            if st.button("⬆ Push", use_container_width=True):
                 if gh_token and gh_repo:
-                    with st.spinner("Push 中…"):
-                        sha = st.session_state.get("gh_sha", "")
-                        ok, code, new_sha = gh_push(gh_token, gh_repo, gh_path,
-                                                    st.session_state.data, sha)
-                    if ok:
-                        st.session_state["gh_sha"] = new_sha
-                        st.session_state["gh_last_push"] = datetime.now().strftime("%H:%M:%S")
-                        st.success("✅ Push 成功")
-                    else:
-                        st.error(f"Push 失敗 ({code})")
+                    try:
+                        import requests, base64
+                        url = f"https://api.github.com/repos/{gh_repo}/contents/{gh_path}"
+                        r = requests.get(url, headers={"Authorization":f"token {gh_token}"}, timeout=8)
+                        sha = r.json().get("sha","") if r.status_code==200 else ""
+                        content = base64.b64encode(json.dumps(data,ensure_ascii=False,indent=2).encode()).decode()
+                        payload = {"message":"Update earnings data","content":content}
+                        if sha: payload["sha"] = sha
+                        r2 = requests.put(url, headers={"Authorization":f"token {gh_token}"},
+                                          json=payload, timeout=8)
+                        if r2.status_code in (200,201):
+                            st.success("✅ 已推送")
+                        else:
+                            st.error(f"錯誤 {r2.status_code}")
+                    except Exception as e:
+                        st.error(str(e))
                 else:
                     st.warning("請填寫 Token 與 Repo")
-
-        # Secrets setup guide
-        with st.expander("📋 如何設定 Secrets（一次性）", expanded=False):
-            st.code("""# Streamlit Cloud → App Settings → Secrets
-# 或本機 .streamlit/secrets.toml
-
-[github]
-token = "ghp_你的token"
-repo  = "yourname/earnings-data"
-path  = "earnings_data.json"
-""", language="toml")
-            st.caption("設定後重新部署，app 啟動自動 Pull，每次儲存自動 Push，無需手動操作")
 
     st.markdown("---")
     # Download
@@ -511,110 +325,6 @@ path  = "earnings_data.json"
     json_bytes = json.dumps(data, ensure_ascii=False, indent=2).encode("utf-8")
     st.download_button("⬇ 下載 JSON", json_bytes,
                        "earnings_all.json", "application/json", use_container_width=True)
-
-    st.markdown("---")
-    with st.expander("⚙️ 資料管理", expanded=False):
-
-        # ── 1. yfinance 自動更新 ──────────────────────────────────────────
-        st.markdown("**🤖 yfinance 自動更新財報日期**")
-        st.caption("從 Yahoo Finance 查詢各標的下一次財報日，自動寫入/更新日曆")
-
-        all_tickers_in_data = sorted(set(
-            e["ticker"] for lst in st.session_state.data.values() for e in lst
-        ))
-
-        # 手動加入額外 ticker
-        extra_input = st.text_input(
-            "追加查詢標的（可選）",
-            placeholder="e.g. NVDA SMCI PLTR AMZN（空格分隔）",
-            help="輸入資料庫以外的標的代碼，一次查詢並新增"
-        )
-        extra_tickers = [t.strip().upper() for t in extra_input.split() if t.strip()]
-        query_tickers = sorted(set(all_tickers_in_data + extra_tickers))
-
-        st.caption(f"現有標的 {len(all_tickers_in_data)} 支：{', '.join(all_tickers_in_data[:12])}{'…' if len(all_tickers_in_data)>12 else ''}")
-
-        col_a1, col_a2 = st.columns(2)
-        with col_a1:
-            fetch_all = st.button("🔍 全部更新", use_container_width=True,
-                                  help=f"查詢全部 {len(query_tickers)} 支標的財報日（約需 {len(query_tickers)*2}s）")
-        with col_a2:
-            fetch_extra = st.button("➕ 只查追加標的", use_container_width=True,
-                                    help="只查詢上方輸入的追加標的")
-
-        if fetch_all or fetch_extra:
-            targets = query_tickers if fetch_all else extra_tickers
-            if not targets:
-                st.warning("沒有可查詢的標的，請先新增財報資料或輸入追加標的")
-            else:
-                progress_bar = st.progress(0, text="準備中…")
-                status_box   = st.empty()
-                def cb(pct, msg):
-                    progress_bar.progress(pct, text=msg)
-                    status_box.caption(msg)
-                updated_data, results = auto_update_earnings(
-                    st.session_state.data, targets, progress_cb=cb
-                )
-                st.session_state.data = updated_data
-                save_data(updated_data)
-                # show result table
-                df_res = pd.DataFrame(results)
-                changed = df_res[df_res["status"].isin(["🔄","➕"])]
-                unchanged = df_res[df_res["status"] == "✅"]
-                failed = df_res[df_res["status"] == "❓"]
-                status_box.empty()
-                st.success(f"更新完成：🔄 更新 {len(df_res[df_res['status']=='🔄'])} 筆，➕ 新增 {len(df_res[df_res['status']=='➕'])} 筆，✅ 無變動 {len(unchanged)} 筆，❓ 查無 {len(failed)} 筆")
-                if not df_res.empty:
-                    st.dataframe(df_res.rename(columns={"ticker":"標的","status":"狀態","date":"財報日","msg":"說明"}),
-                                 use_container_width=True, hide_index=True)
-                st.rerun()
-
-        st.markdown("---")
-        # ── 2. 合併預設資料 ───────────────────────────────────────────────
-        st.markdown("**📦 合併內建預設資料**")
-        st.caption("將內建 2026 年預設財報資料合併寫入（不刪除你已有的資料）")
-        if st.button("🔄 合併載入 2026 預設資料", use_container_width=True):
-            default = get_default_data()
-            merged = dict(st.session_state.data)
-            added = 0
-            for mkey, entries in default.items():
-                if mkey not in merged:
-                    merged[mkey] = entries
-                    added += len(entries)
-                else:
-                    existing_ids = {e.get("id") for e in merged[mkey]}
-                    for entry in entries:
-                        if entry.get("id") not in existing_ids:
-                            merged[mkey].append(entry)
-                            added += 1
-            st.session_state.data = merged
-            save_data(merged)
-            st.success(f"✅ 已合併，新增 {added} 筆預設資料")
-            st.rerun()
-
-        st.markdown("---")
-        # ── 3. 重置 ───────────────────────────────────────────────────────
-        st.markdown("**⚠️ 危險操作**")
-        st.caption("清除所有資料，無法復原")
-        if st.button("🗑 清除全部，重置為預設", use_container_width=True):
-            st.session_state["confirm_reset"] = True
-        if st.session_state.get("confirm_reset"):
-            st.warning("確定要清除全部資料並重置？")
-            col_y, col_n = st.columns(2)
-            with col_y:
-                if st.button("✅ 確定重置", use_container_width=True):
-                    default = get_default_data()
-                    st.session_state.data = default
-                    if os.path.exists(DATA_FILE):
-                        os.remove(DATA_FILE)
-                    save_data(default)
-                    st.session_state["confirm_reset"] = False
-                    st.success("✅ 已重置")
-                    st.rerun()
-            with col_n:
-                if st.button("❌ 取消", use_container_width=True):
-                    st.session_state["confirm_reset"] = False
-                    st.rerun()
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 month_key  = get_month_key(sel_year, sel_month)
