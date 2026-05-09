@@ -1,0 +1,384 @@
+{
+  "2026-01": [
+    {
+      "id": "q1b01",
+      "date": "2026-01-13",
+      "ticker": "JPM",
+      "name": "JPMorgan Chase",
+      "time": "盤前",
+      "notes": "Q4 2025財報；關注NII指引、貸款損失準備金、投行復甦"
+    },
+    {
+      "id": "q1b02",
+      "date": "2026-01-14",
+      "ticker": "BAC",
+      "name": "Bank of America",
+      "time": "盤前",
+      "notes": "Q4 2025；淨利息收入走勢、信用卡逾期率"
+    },
+    {
+      "id": "q1b03",
+      "date": "2026-01-14",
+      "ticker": "WFC",
+      "name": "Wells Fargo",
+      "time": "盤前",
+      "notes": "Q4 2025；費用控制、合規進展"
+    },
+    {
+      "id": "q1b04",
+      "date": "2026-01-14",
+      "ticker": "C",
+      "name": "Citigroup",
+      "time": "盤前",
+      "notes": "Q4 2025；轉型計畫執行進度、ROE改善"
+    },
+    {
+      "id": "q1b05",
+      "date": "2026-01-13",
+      "ticker": "GS",
+      "name": "Goldman Sachs",
+      "time": "盤前",
+      "notes": "Q4 2025；交易收入、併購諮詢復甦"
+    },
+    {
+      "id": "q1b06",
+      "date": "2026-01-15",
+      "ticker": "MS",
+      "name": "Morgan Stanley",
+      "time": "盤前",
+      "notes": "Q4 2025；財富管理AUM、投行收入"
+    }
+  ],
+  "2026-04": [
+    {
+      "id": "q1a01",
+      "date": "2026-04-13",
+      "ticker": "GS",
+      "name": "Goldman Sachs",
+      "time": "盤前",
+      "notes": "Q1 2026，EPS $17.55 實際(已公布)；股票交易創紀錄 $5.33B，IB費用 +48% YoY"
+    },
+    {
+      "id": "q1a02",
+      "date": "2026-04-14",
+      "ticker": "JPM",
+      "name": "JPMorgan Chase",
+      "time": "盤前",
+      "notes": "Q1 2026，EPS $5.94 實際(已公布)；營收 $50.5B +10%，全年NII指引下修至 $103B"
+    },
+    {
+      "id": "q1a03",
+      "date": "2026-04-14",
+      "ticker": "WFC",
+      "name": "Wells Fargo",
+      "time": "盤前",
+      "notes": "Q1 2026 實際(已公布)；NII走勢、信用品質"
+    },
+    {
+      "id": "q1a04",
+      "date": "2026-04-14",
+      "ticker": "C",
+      "name": "Citigroup",
+      "time": "盤前",
+      "notes": "Q1 2026 實際(已公布)；轉型執行、資本效率"
+    },
+    {
+      "id": "q1a05",
+      "date": "2026-04-15",
+      "ticker": "BAC",
+      "name": "Bank of America",
+      "time": "盤前",
+      "notes": "Q1 2026 實際(已公布)；消費者貸款、NII"
+    },
+    {
+      "id": "q1a06",
+      "date": "2026-04-15",
+      "ticker": "MS",
+      "name": "Morgan Stanley",
+      "time": "盤前",
+      "notes": "Q1 2026 實際(已公布)；財富管理、E*TRADE流量"
+    },
+    {
+      "id": "q1a07",
+      "date": "2026-04-16",
+      "ticker": "TSM",
+      "name": "TSMC",
+      "time": "盤前",
+      "notes": "Q1 2026 法說；營收 $35.71B +35% YoY(已公布)；關注2026 CapEx $52-56B 是否維持"
+    },
+    {
+      "id": "q1a08",
+      "date": "2026-04-22",
+      "ticker": "TSLA",
+      "name": "Tesla",
+      "time": "盤後",
+      "notes": "Q1 2026 實際(已公布)；交車量 408,386 輛 +14% YoY；FSD收入、Robotaxi進展"
+    },
+    {
+      "id": "q1a09",
+      "date": "2026-04-29",
+      "ticker": "MSFT",
+      "name": "Microsoft",
+      "time": "盤後",
+      "notes": "Q1 2026 實際(已公布)；EPS $4.27，Azure成長、Copilot商業化"
+    },
+    {
+      "id": "q1a10",
+      "date": "2026-04-29",
+      "ticker": "META",
+      "name": "Meta Platforms",
+      "time": "盤後",
+      "notes": "Q1 2026 實際(已公布)；廣告收入強勁，AI CapEx擴張"
+    },
+    {
+      "id": "q1a11",
+      "date": "2026-04-29",
+      "ticker": "GOOGL",
+      "name": "Alphabet",
+      "time": "盤後",
+      "notes": "Q1 2026 實際(已公布)；淨利 +81%，AI提振搜尋廣告，市值逼近 $4.5T"
+    },
+    {
+      "id": "q1a12",
+      "date": "2026-04-29",
+      "ticker": "AMZN",
+      "name": "Amazon",
+      "time": "盤後",
+      "notes": "Q1 2026 實際(已公布)；AWS成長超 20%，雲端市佔防守"
+    },
+    {
+      "id": "q1a13",
+      "date": "2026-04-30",
+      "ticker": "AAPL",
+      "name": "Apple",
+      "time": "盤後",
+      "notes": "Q1 FY2026 實際(已公布)；iPhone 17 需求強，季配息提高至 $0.27，下季報告日 2026-07-30"
+    }
+  ],
+  "2026-05": [
+    {
+      "id": "q1m01",
+      "date": "2026-05-05",
+      "ticker": "AMD",
+      "name": "Advanced Micro Devices",
+      "time": "盤後",
+      "notes": "Q1 2026，EPS共識 $1.29 +34% YoY；關注 AI GPU MI300X/MI350 出貨量，年初至今股價 +68%"
+    },
+    {
+      "id": "q1m02",
+      "date": "2026-05-05",
+      "ticker": "LITE",
+      "name": "Lumentum Holdings",
+      "time": "盤後",
+      "notes": "FQ3 2026，營收指引 $780M-$830M，EPS $2.15-$2.35；800G/1.6T 光模組需求"
+    },
+    {
+      "id": "q1m03",
+      "date": "2026-05-06",
+      "ticker": "COHR",
+      "name": "Coherent Corp",
+      "time": "盤後",
+      "notes": "FQ3 2026，EPS共識 $1.41，營收指引 $1.46B-$1.60B；AI數據中心光通訊 +19% YoY"
+    },
+    {
+      "id": "q1m04",
+      "date": "2026-05-07",
+      "ticker": "AAOI",
+      "name": "Applied Optoelectronics",
+      "time": "盤後",
+      "notes": "Q1 2026，營收指引 $150M-$165M；800G超大規模訂單 $124M+，全年目標 >$1B"
+    },
+    {
+      "id": "q1m05",
+      "date": "2026-05-20",
+      "ticker": "NVDA",
+      "name": "NVIDIA",
+      "time": "盤後",
+      "notes": "FQ1 FY2027，營收共識 $78.63B +77% YoY；Blackwell GB200/GB300 出貨，關注數據中心指引"
+    }
+  ],
+  "2026-07": [
+    {
+      "id": "q2j01",
+      "date": "2026-07-14",
+      "ticker": "GS",
+      "name": "Goldman Sachs",
+      "time": "盤前",
+      "notes": "Q2 2026預估；EPS共識 $13.75，營收 $15.71B；持續關注地緣政治對IB的影響"
+    },
+    {
+      "id": "q2j02",
+      "date": "2026-07-14",
+      "ticker": "JPM",
+      "name": "JPMorgan Chase",
+      "time": "盤前",
+      "notes": "Q2 2026；NII下半年走勢、消費者信用品質"
+    },
+    {
+      "id": "q2j03",
+      "date": "2026-07-15",
+      "ticker": "BAC",
+      "name": "Bank of America",
+      "time": "盤前",
+      "notes": "Q2 2026；利率敏感度、貸款成長"
+    },
+    {
+      "id": "q2j04",
+      "date": "2026-07-15",
+      "ticker": "MS",
+      "name": "Morgan Stanley",
+      "time": "盤前",
+      "notes": "Q2 2026；財富管理流量、IPO市場復甦"
+    },
+    {
+      "id": "q2j05",
+      "date": "2026-07-22",
+      "ticker": "TSLA",
+      "name": "Tesla",
+      "time": "盤後",
+      "notes": "Q2 2026；Robotaxi商業化里程碑、交車量"
+    },
+    {
+      "id": "q2j06",
+      "date": "2026-07-29",
+      "ticker": "MSFT",
+      "name": "Microsoft",
+      "time": "盤後",
+      "notes": "Q2 2026；Azure加速、Copilot企業滲透率"
+    },
+    {
+      "id": "q2j07",
+      "date": "2026-07-29",
+      "ticker": "META",
+      "name": "Meta Platforms",
+      "time": "盤後",
+      "notes": "Q2 2026；廣告ARPU、Llama商業化進展"
+    },
+    {
+      "id": "q2j08",
+      "date": "2026-07-29",
+      "ticker": "GOOGL",
+      "name": "Alphabet",
+      "time": "盤後",
+      "notes": "Q2 2026；Gemini Ultra monetization、YouTube成長"
+    },
+    {
+      "id": "q2j09",
+      "date": "2026-07-30",
+      "ticker": "AAPL",
+      "name": "Apple",
+      "time": "盤後",
+      "notes": "FQ3 FY2026；iPhone AI功能滲透、印度製造進展"
+    },
+    {
+      "id": "q2j10",
+      "date": "2026-07-30",
+      "ticker": "AMZN",
+      "name": "Amazon",
+      "time": "盤後",
+      "notes": "Q2 2026；AWS維持 >20% 成長、廣告業務"
+    }
+  ],
+  "2026-08": [
+    {
+      "id": "q2a01",
+      "date": "2026-08-19",
+      "ticker": "NVDA",
+      "name": "NVIDIA",
+      "time": "盤後",
+      "notes": "FQ2 FY2027；Blackwell全速出貨、Rubin平台預覽、數據中心CapEx"
+    }
+  ],
+  "2026-10": [
+    {
+      "id": "q3o01",
+      "date": "2026-10-13",
+      "ticker": "JPM",
+      "name": "JPMorgan Chase",
+      "time": "盤前",
+      "notes": "Q3 2026；下半年經濟展望、信用週期"
+    },
+    {
+      "id": "q3o02",
+      "date": "2026-10-14",
+      "ticker": "GS",
+      "name": "Goldman Sachs",
+      "time": "盤前",
+      "notes": "Q3 2026；M&A交易量、FICC回升"
+    },
+    {
+      "id": "q3o03",
+      "date": "2026-10-21",
+      "ticker": "TSLA",
+      "name": "Tesla",
+      "time": "盤後",
+      "notes": "Q3 2026；Optimus robot量產進度"
+    },
+    {
+      "id": "q3o04",
+      "date": "2026-10-28",
+      "ticker": "MSFT",
+      "name": "Microsoft",
+      "time": "盤後",
+      "notes": "Q3 2026；AI總支出 ROI 能見度"
+    },
+    {
+      "id": "q3o05",
+      "date": "2026-10-28",
+      "ticker": "META",
+      "name": "Meta Platforms",
+      "time": "盤後",
+      "notes": "Q3 2026；Reality Labs虧損趨勢"
+    },
+    {
+      "id": "q3o06",
+      "date": "2026-10-29",
+      "ticker": "GOOGL",
+      "name": "Alphabet",
+      "time": "盤後",
+      "notes": "Q3 2026；Cloud vs AWS vs Azure市佔"
+    },
+    {
+      "id": "q3o07",
+      "date": "2026-10-29",
+      "ticker": "AMZN",
+      "name": "Amazon",
+      "time": "盤後",
+      "notes": "Q3 2026；廣告 + AWS雙引擎"
+    },
+    {
+      "id": "q3o08",
+      "date": "2026-10-30",
+      "ticker": "AAPL",
+      "name": "Apple",
+      "time": "盤後",
+      "notes": "FQ4 FY2026；假日季前哨，iPhone出貨"
+    }
+  ],
+  "2026-11": [
+    {
+      "id": "q3n01",
+      "date": "2026-11-18",
+      "ticker": "NVDA",
+      "name": "NVIDIA",
+      "time": "盤後",
+      "notes": "FQ3 FY2027；Rubin GPU需求、中國出口限制影響"
+    },
+    {
+      "id": "q3n02",
+      "date": "2026-11-04",
+      "ticker": "AAOI",
+      "name": "Applied Optoelectronics",
+      "time": "盤後",
+      "notes": "Q3 2026；1.6T規模訂單執行、Texas廠產能"
+    },
+    {
+      "id": "q3n03",
+      "date": "2026-11-05",
+      "ticker": "COHR",
+      "name": "Coherent Corp",
+      "time": "盤後",
+      "notes": "FQ1 FY2027；光子整合晶片進展"
+    }
+  ]
+}
